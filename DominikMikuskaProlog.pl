@@ -1,3 +1,8 @@
+% Pred pouzitim programu je potrebne nainstalovat pack regex nasledovnym
+% prikazom: pack_install(regex). Tuto kniznicu pouzivam na overenie
+% regularnych vyrazoch DD - MM - RR pri datume
+:-use_module(library(regex)).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Mame predikat student,ktory ma 8 argumentov a potrebujeme
 % povedat prologu, ze sa pocet jeho klauzul moze menit.
@@ -14,7 +19,7 @@
 % Hlavny cyklus programu
 % main()
 
-main:-	        %uz pri spusteni moze nacitat databazu
+main:-
 	repeat,
 	menu,
 	get(C),
@@ -31,7 +36,8 @@ menu:-
 	writeln('2 - zapis do suboru'),
 	writeln('3 - vypis vsetkych studentov'),
 	writeln('4 - pridanie studenta'),
-	writeln('5 - pridanie studenta'),
+	writeln('5 - zmazanie studenta'),
+	writeln('6 - zoradit'),
 	writeln('9 - koniec prace systemu'),
 	writeln('------------------------'),
 	nl.
@@ -55,8 +61,9 @@ vykonaj(50):-
 	read_atom(MenoSuboru),
 	zapis(MenoSuboru),!.
 vykonaj(51):-vypis,!.
-vykonaj(52):-pridaj(),!.
-vykonaj(53):-vymaz(),!.
+vykonaj(52):-pridaj,!.
+vykonaj(53):-vymaz,!.
+vykonaj(54):-zorad_ponuka,!.
 vykonaj(57):-!.
 vykonaj(_):-writeln('Pouzivaj len urcene znaky!').
 
@@ -92,35 +99,7 @@ zapis(S):-
 	fail.
 zapis(_):-told.
 
-pridaj():-
-	read_string(BezTohtoToNejde),
-	writeln('Zadaj meno'),
-	read_string(Meno),
-	writeln('Zadaj priezvisko'),
-	read_string(Priezvisko),
-	writeln('Zadaj stupen studia'),
-	read_string(Stupen),
-	writeln('Zadaj odbor'),
-	read_string(Odbor),
-	writeln('Zadaj rocnik'),
-	read_num(Rocnik),
-	writeln('Zadaj datum prijatia'),
-	read_string(Prijatie),
-	writeln('Zadaj datum ukoncenia'),
-	read_string(Ukoncenie),
-	writeln('Zadaj status'),
-	read_string(Status),
-	write(Meno),
-	write(Priezvisko),
-	write(Stupen),
-	write(Odbor),
-	write(Rocnik),
-	write(Prijatie),
-	write(Ukoncenie),
-	writeln(Status),
-	assertz(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)).
 
-vymaz().
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sluzi na vypis
 % vypis()
@@ -145,11 +124,135 @@ vypis:-
 	fail.
 vypis.
 
+%Moje veci - neskor okomentovat
+pridaj:-
+	read_string(BezTohtoToNejde),
+	writeln('Zadaj meno'),
+	read_string(Meno),
+	writeln('Zadaj priezvisko'),
+	read_string(Priezvisko),
+	writeln('Zadaj stupen studia'),
+	read_string(Stupen),
+	writeln('Zadaj odbor'),
+	read_string(Odbor),
+	writeln('Zadaj rocnik'),
+	read_num(Rocnik),
+	writeln('Zadaj datum prijatia (DD - MM - RR)'),
+	read_string(Prijatie),
+	over_datum(Prijatie),
+	writeln('Zadaj datum ukonèenia (DD - MM - RR'),
+	read_string(Ukoncenie),
+	over_datum(Ukoncenie),
+	writeln('Zadaj status'),
+	read_string(Status),
+	!,
+	assertz(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)).
+
+pridaj:-
+	writeln('Zly format vstupu!').
+
+vymaz:-
+	read_string(BezTohtoToNejde),
+	writeln('Zadaj meno'),
+	read_string(Meno),
+	writeln('Zadaj priezvisko'),
+	read_string(Priezvisko),
+	writeln('Zadaj stupen studia'),
+	read_string(Stupen),
+	writeln('Zadaj odbor'),
+	read_string(Odbor),
+	writeln('Zadaj rocnik'),
+	read_num(Rocnik),
+	writeln('Zadaj datum prijatia (DD - MM - RR)'),
+	read_string(Prijatie),
+	writeln('Zadaj datum ukonèenia (DD - MM - RR)'),
+	read_string(Ukoncenie),
+	writeln('Zadaj status'),
+	read_string(Status),
+	retract(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)),
+	!.
+
+zorad_ponuka:-
+	zorad_menu,
+	get(C),
+	zorad(C).
+
+zorad_menu:-
+	nl,
+	writeln('Zadajte moznost, podla coho chcete zoradit'),
+	writeln('1 - Meno'),
+	writeln('2 - Priezvisko'),
+	writeln('3 - Stupen studia'),
+	writeln('4 - Odbor'),
+	writeln('5 - Rocnik'),
+	writeln('6 - Datum prijatia'),
+	writeln('7 - Datum ukoncenia'),
+	writeln('8 - Status'),
+	writeln('9 - Zrusit'),
+	writeln('------------------------'),
+	nl.
+
+
+zorad(49):-
+	findall(N-student(N,A,B,C,D,E,F,G),student(N,A,B,C,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted),!.
+zorad(50):-
+	findall(N-student(A,N,B,C,D,E,F,G),student(A,N,B,C,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted),!.
+zorad(51):-
+	findall(N-student(A,B,N,C,D,E,F,G),student(A,B,N,C,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted),!.
+zorad(52):-
+	findall(N-student(A,B,C,N,D,E,F,G),student(A,B,C,N,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted),!.
+zorad(53):-
+	findall(N-student(A,B,C,D,N,E,F,G),student(A,B,C,D,N,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted),!.
+%TODO
+zorad(54):-
+	findall(N-student(E,A,B,C,D,N,F,G),student(E,A,B,C,D,N,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted),!.
+%TODO
+zorad(55):-
+	findall(N-student(A,B,C,D,E,F,N,G),student(A,B,C,D,E,F,N,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted),!.
+
+zorad(56):-
+	findall(N-student(A,B,C,D,E,F,G,N),student(A,B,C,D,E,F,G,N),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	pridaj_zoradene(Sorted).
+
+zorad(57):-
+	writeln('Rusim zoradovanie'),!.
+zorad(_):-
+	writeln('Zla moznost').
 
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pomocne predikaty - priklady
 % Predikat, ktory nacita string aj ked tam je velke zaciatocne pismeno
 % read_string(?String) argument je ale vhodnejsie pouzivat ako vystupny
@@ -186,3 +289,15 @@ read_atom(A):-
 % vrati zoznam Mien a Priezvisk pre vsetkych zakaznikov v databaze
 % findall(M^P , zakaznik(M,P,A,O), List).
 % findall(M-P-A>O,zakaznik(M,P,A,O),List).
+
+% Overi spravne formatovanie datumu
+% over_datum(+String).
+over_datum(X):-
+	X=~'[0-9]{2} - [0-9]{2} - [0-9]{2}'.
+
+pridaj_zoradene([H|T]):-
+	assertz(H),
+	pridaj_zoradene(T),!.
+
+pridaj_zoradene([]).
+
