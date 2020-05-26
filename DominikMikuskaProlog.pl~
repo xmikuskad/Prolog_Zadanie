@@ -1,5 +1,7 @@
 % Pred pouzitim programu je potrebne nainstalovat pack regex nasledovnym
-% prikazom: pack_install(regex). Tuto kniznicu pouzivam na overenie
+% prikazom:
+% pack_install(regex).
+% Tuto kniznicu pouzivam na overenie
 % regularnych vyrazoch DD - MM - RR pri datume
 :-use_module(library(regex)).
 
@@ -23,7 +25,6 @@ main:-
 	writeln('Koniec prace.').
 
 %%%
-% Menu rozsirite podla zadania
 % menu
 menu:-
 	nl,
@@ -42,10 +43,6 @@ menu:-
 %%%
 % vykonanie vybranej moznosti
 % vykonaj(+Code)
-
-vykonaj(48):-
-	retractall(student(_,_,_,_,_,_,_,_)),
-	!.
 vykonaj(49):-
 	read_atom(BezTohtoToNejde),
 	write('Zadaj meno suboru na citanie: '),
@@ -70,7 +67,6 @@ vykonaj(_):-writeln('Pouzivaj len urcene znaky!').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sluzi na citanie zo suboru, najprv vyprazdni existujucu DB.
 % citaj(+Subor)
-
 citaj(S):-
 	retractall(student(_,_,_,_,_,_,_,_)),
 	see(S),
@@ -88,7 +84,6 @@ citaj(S):-
 %%%
 % Sluzi na zapis textoveho suboru.
 % zapis(+Subor)
-
 zapis(S):-
 	tell(S),
         student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status),
@@ -102,7 +97,6 @@ zapis(_):-told.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sluzi na vypis
 % vypis()
-
 vypis:-
 	student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status),
         write(Meno),
@@ -123,13 +117,13 @@ vypis:-
 	fail.
 vypis.
 
-%Moje veci - neskor okomentovat
+% Prida studenta do databazy
 pridaj:-
 	read_string(BezTohtoToNejde),
 	writeln('Zadaj meno'),
-	read_string(Meno),
+	read_string_not_empty(Meno),
 	writeln('Zadaj priezvisko'),
-	read_string(Priezvisko),
+	read_string_not_empty(Priezvisko),
 	writeln('Zadaj stupen studia'),
 	read_string(Stupen),
 	writeln('Zadaj odbor'),
@@ -148,8 +142,9 @@ pridaj:-
 	assertz(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)).
 
 pridaj:-
-	writeln('Zly format vstupu!').
+	writeln('Zly format datumu!').
 
+% Vymaze studenta z databazy
 vymaz:-
 	read_string(BezTohtoToNejde),
 	writeln('Zadaj meno'),
@@ -171,11 +166,13 @@ vymaz:-
 	retract(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)),
 	!.
 
+% Otvori ponuku pre zoradovanie zostupne
 zorad_zostupne_ponuka:-
 	zorad_menu,
 	get(C),
 	zorad_zostupne(C).
 
+% Vypise text pre zoradovanie
 zorad_menu:-
 	nl,
 	writeln('Zadajte moznost, podla coho chcete zoradit'),
@@ -191,7 +188,10 @@ zorad_menu:-
 	writeln('------------------------'),
 	nl.
 
-
+% Zoradi zostupne podla parametra v Code
+% Pri zoradovani pouzivam to, ze dany parameter si dam ako kluc a ten
+% nasledne zoradim a kluc odstranim
+% zorad_zostupne(+Code).
 zorad_zostupne(49):-
 	findall(N-student(N,A,B,C,D,E,F,G),student(N,A,B,C,D,E,F,G),L),
 	keysort(L,X),
@@ -249,12 +249,17 @@ zorad_zostupne(57):-
 zorad_zostupne(_):-
 	writeln('Zla moznost').
 
-%Vzostupne
+% Otvori ponuku pre zoradovanie vzostupne
 zorad_vzostupne_ponuka:-
 	zorad_menu,
 	get(C),
 	zorad_vzostupne(C).
 
+% Zoradi vzostupne podla parametra v Code
+% Pri zoradovani pouzivam to, ze dany parameter si dam ako kluc a ten
+% nasledne zoradim a kluc odstranim. Kedze zoradujem vzostupne tak
+% vysledny list este otocim
+% zorad_vzostupne(+Code).
 zorad_vzostupne(49):-
 	findall(N-student(N,A,B,C,D,E,F,G),student(N,A,B,C,D,E,F,G),L),
 	keysort(L,X),
@@ -320,6 +325,8 @@ zorad_vzostupne(57):-
 zorad_vzostupne(_):-
 	writeln('Zla moznost').
 
+% Tato funkcia vyhlada studenta podla parametrov. Ak je parameter
+% prazdny tak ho pri vyhladavani neberie do uvahy
 vyhladaj:-
 	writeln('Ak nechcete vyhladat podla daneho parametru tak nechajte pole prazdne'),
 	read_string(BezTohtoToNejde),
@@ -341,7 +348,7 @@ vyhladaj:-
 	read_search_string(Status),
 
 	findall(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status),student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status),L),
-	writeln('Najdene vysledky:'),
+	nl,writeln('Najdene vysledky:'),nl,
 	vypis_hladanie(L).
 
 
@@ -349,76 +356,114 @@ vyhladaj:-
 % Pomocne predikaty - priklady
 % Predikat, ktory nacita string aj ked tam je velke zaciatocne pismeno
 % read_string(?String) argument je ale vhodnejsie pouzivat ako vystupny
-
 read_string(String):-
 	current_input(Input),
 	read_line_to_codes(Input,Codes),
 	string_codes(String,Codes).
 
+% Predikat, ktory nacita string aj ked tam je velke zaciatocne pismeno.
+% String nemoze byt prazdny
+% read_string_not_empty(?String) argument je
+% ale vhodnejsie pouzivat ako vystupny
+read_string_not_empty(String):-
+	current_input(Input),
+	read_line_to_codes(Input,Codes),
+	not(is_empty_arr(Codes)),
+	string_codes(String,Codes),!.
+
+read_string_not_empty(String):-
+	write('\tPole nesmie byt prazdne, zadajte znova: '),
+	read_string_not_empty(String).
+
 %%%
 % Predikat sa vykonava opakovane kym pouzivatel nezada korektne cislo
-% read_num(?Number) argument je velmi vhodne pouzivat len ako vystupny
-
+% alebo enter
+% read_num(?Number) argument je velmi vhodne pouzivat len
+% ako vystupny
 read_num(Num) :-
 	read_string(Str),
-	number_string(Num, Str), !.
+	check_num(Num, Str), !.
 
 read_num(Num) :-
 	write('\tMusite zadat cislo: '),
 	read_num(Num).
 
+% Overuje, ci je dany string cislo, popripade enter ak uzivateln nechce
+% zadat datum
+% check_num(?Number,+String).
+check_num(Num,Str):-
+	number_string(Num, Str), !.
+check_num(Str,Str):-
+	string_codes(Str,Codes),
+	is_empty_arr(Codes),!.
 
 %%%
 % Konverzia retazca na atom
 % read_atom(?Atom)
-
 read_atom(A):-
 	read_string(Str),
 	atom_string(A,Str).
 
-%%%
-% Najde vsetky riesenia pre dany ciel
-% findall(+Template, :Goal, -Bag)
-% vrati zoznam Mien a Priezvisk pre vsetkych zakaznikov v databaze
-% findall(M^P , zakaznik(M,P,A,O), List).
-% findall(M-P-A>O,zakaznik(M,P,A,O),List).
-
-% Overi spravne formatovanie datumu
+% Overi spravne formatovanie datumu DD - MM - RR alebo prazdny string ak
+% uzivatel nechce zadat datumn
 % over_datum(+String).
 over_datum(X):-
-	X=~'[0-9]{2} - [0-9]{2} - [0-9]{2}'.
+	X=~'[0-9]{2} - [0-9]{2} - [0-9]{2}',!.
+over_datum(Z):-
+	string_codes(Z,Code),
+	is_empty_arr(Code),!.
 
+% Rekurzivne pridava studentov z listu do databazy
+% pridaj_zoradene(+List).
 pridaj_zoradene([H|T]):-
 	assertz(H),
 	pridaj_zoradene(T),!.
 pridaj_zoradene([]).
 
+% Rekurzivne otoci poradie listu
+% my_reverse(+List,-List).
 my_reverse(List,R) :-
      my_reverse(List,[],R).
 
+% Pomocna funkcia na otacanie
+% my_reverse(+List,:Acc,-List).
 my_reverse([],List,List).
 my_reverse([H|T],R,List) :-
      my_reverse(T,[H|R],List).
 
+% Pomocna funkcia, ktora otoci datum aby sa dola podla neho zoradovat.
+% Vyuzivam ju pri vytvarani klucov pri sortovani.
+% my_reverse_date(+Student,-Kluc).
 my_reverse_date1(student(_,_,_,_,_,F,_,_),I):-
 	reverse_string(F,I).
 my_reverse_date2(student(_,_,_,_,_,_,G,_),I):-
 	reverse_string(G,I).
+
+% Funkcia, ktora otoci prichadzajuci string
+% reverse_string(+String,-String).
 reverse_string(XX,YY):-
 	string_codes(XX,X),
 	my_reverse(X,Y),
 	string_codes(YY,Y).
 
+% Pomocna funkcia, ktora sa vyuziva pri vyhladavani.
+% Overujem, ci uzivatel zadal argument na hladanie (vtedy ho
+% vraciam) alebo mam dane hladanie preskocit.
+% read_search_string(-String).
 read_search_string(String):-
 	current_input(Input),
 	read_line_to_codes(Input,Codes),
 	not(is_empty_arr(Codes)),
 	string_codes(String,Codes),
 	!.
-
 read_search_string(_).
+
+% Funkcia, ktora overuje ci je list prazdny
+% is_empty_arr(+List).
 is_empty_arr([]).
 
+% Funkcia, ktore vypise vysledky vyhladania
+% vypis_hladanie(+List).
 vypis_hladanie([student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)|T]):-
         write(Meno),
 	write(" "),
@@ -437,3 +482,4 @@ vypis_hladanie([student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,S
 	writeln(Status),
 	vypis_hladanie(T).
 vypis_hladanie([]).
+sdad
