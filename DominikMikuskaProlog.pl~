@@ -9,11 +9,6 @@
 % student(Meno,Priezvisko,StupenStudia,Odbor,Rocnik,DatumPrijatia,
 % DatumUkoncenia,Status).
 :- dynamic student/8.
-%%%
-% zadefinujeme operatory - len priklad
-
-:- op(600,xfy,::).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Hlavny cyklus programu
@@ -37,7 +32,8 @@ menu:-
 	writeln('3 - vypis vsetkych studentov'),
 	writeln('4 - pridanie studenta'),
 	writeln('5 - zmazanie studenta'),
-	writeln('6 - zoradit'),
+	writeln('6 - zoradit zostupne'),
+	writeln('7 - zoradit vzostupne'),
 	writeln('9 - koniec prace systemu'),
 	writeln('------------------------'),
 	nl.
@@ -63,7 +59,9 @@ vykonaj(50):-
 vykonaj(51):-vypis,!.
 vykonaj(52):-pridaj,!.
 vykonaj(53):-vymaz,!.
-vykonaj(54):-zorad_ponuka,!.
+vykonaj(54):-zorad_zostupne_ponuka,!.
+vykonaj(55):-zorad_vzostupne_ponuka,!.
+
 vykonaj(57):-!.
 vykonaj(_):-writeln('Pouzivaj len urcene znaky!').
 
@@ -172,10 +170,10 @@ vymaz:-
 	retract(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)),
 	!.
 
-zorad_ponuka:-
+zorad_zostupne_ponuka:-
 	zorad_menu,
 	get(C),
-	zorad(C).
+	zorad_zostupne(C).
 
 zorad_menu:-
 	nl,
@@ -193,61 +191,132 @@ zorad_menu:-
 	nl.
 
 
-zorad(49):-
+zorad_zostupne(49):-
 	findall(N-student(N,A,B,C,D,E,F,G),student(N,A,B,C,D,E,F,G),L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
 	pridaj_zoradene(Sorted),!.
-zorad(50):-
+zorad_zostupne(50):-
 	findall(N-student(A,N,B,C,D,E,F,G),student(A,N,B,C,D,E,F,G),L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
 	pridaj_zoradene(Sorted),!.
-zorad(51):-
+zorad_zostupne(51):-
 	findall(N-student(A,B,N,C,D,E,F,G),student(A,B,N,C,D,E,F,G),L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
 	pridaj_zoradene(Sorted),!.
-zorad(52):-
+zorad_zostupne(52):-
 	findall(N-student(A,B,C,N,D,E,F,G),student(A,B,C,N,D,E,F,G),L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
 	pridaj_zoradene(Sorted),!.
-zorad(53):-
+zorad_zostupne(53):-
 	findall(N-student(A,B,C,D,N,E,F,G),student(A,B,C,D,N,E,F,G),L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
 	pridaj_zoradene(Sorted),!.
-%TODO
-zorad(54):-
-	findall(N-student(E,A,B,C,D,N,F,G),student(E,A,B,C,D,N,F,G),L),
+zorad_zostupne(54):-
+	findall(student(A,B,C,D,N,E,F,G),student(A,B,C,D,N,E,F,G),TT),
+	map_list_to_pairs(my_reverse_date1,TT,L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
 	pridaj_zoradene(Sorted),!.
-%TODO
-zorad(55):-
-	findall(N-student(A,B,C,D,E,F,N,G),student(A,B,C,D,E,F,N,G),L),
+zorad_zostupne(55):-
+	findall(student(A,B,C,D,N,E,F,G),student(A,B,C,D,N,E,F,G),TT),
+	map_list_to_pairs(my_reverse_date2,TT,L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
 	pridaj_zoradene(Sorted),!.
 
-zorad(56):-
+zorad_zostupne(56):-
 	findall(N-student(A,B,C,D,E,F,G,N),student(A,B,C,D,E,F,G,N),L),
 	keysort(L,X),
 	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
 	retractall(student(_,_,_,_,_,_,_,_)),
-	pridaj_zoradene(Sorted),
+	pridaj_zoradene(Sorted).
 
-zorad(57):-
+zorad_zostupne(57):-
 	writeln('Rusim zoradovanie'),!.
-zorad(_):-
+zorad_zostupne(_):-
+	writeln('Zla moznost').
+
+%Vzostupne
+zorad_vzostupne_ponuka:-
+	zorad_menu,
+	get(C),
+	zorad_vzostupne(C).
+
+zorad_vzostupne(49):-
+	findall(N-student(N,A,B,C,D,E,F,G),student(N,A,B,C,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2),!.
+zorad_vzostupne(50):-
+	findall(N-student(A,N,B,C,D,E,F,G),student(A,N,B,C,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2),!.
+zorad_vzostupne(51):-
+	findall(N-student(A,B,N,C,D,E,F,G),student(A,B,N,C,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2),!.
+zorad_vzostupne(52):-
+	findall(N-student(A,B,C,N,D,E,F,G),student(A,B,C,N,D,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2),!.
+zorad_vzostupne(53):-
+	findall(N-student(A,B,C,D,N,E,F,G),student(A,B,C,D,N,E,F,G),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2),!.
+zorad_vzostupne(54):-
+	findall(student(A,B,C,D,N,E,F,G),student(A,B,C,D,N,E,F,G),TT),
+	map_list_to_pairs(my_reverse_date1,TT,L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2),!.
+zorad_vzostupne(55):-
+	findall(student(A,B,C,D,N,E,F,G),student(A,B,C,D,N,E,F,G),TT),
+	map_list_to_pairs(my_reverse_date2,TT,L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2),!.
+
+zorad_vzostupne(56):-
+	findall(N-student(A,B,C,D,E,F,G,N),student(A,B,C,D,E,F,G,N),L),
+	keysort(L,X),
+	pairs_values(X,Sorted), %vrati naspat tvar bez klucov
+	retractall(student(_,_,_,_,_,_,_,_)),
+	my_reverse(Sorted,Sorted2),
+	pridaj_zoradene(Sorted2).
+
+zorad_vzostupne(57):-
+	writeln('Rusim zoradovanie'),!.
+zorad_vzostupne(_):-
 	writeln('Zla moznost').
 
 
@@ -298,6 +367,20 @@ over_datum(X):-
 pridaj_zoradene([H|T]):-
 	assertz(H),
 	pridaj_zoradene(T),!.
-
 pridaj_zoradene([]).
 
+my_reverse(List,R) :-
+     my_reverse(List,[],R).
+
+my_reverse([],List,List).
+my_reverse([H|T],R,List) :-
+     my_reverse(T,[H|R],List).
+
+my_reverse_date1(student(A,B,C,D,E,F,G,H),I):-
+	reverse_string(F,I).
+my_reverse_date2(student(A,B,C,D,E,F,G,H),I):-
+	reverse_string(G,I).
+reverse_string(XX,YY):-
+	string_codes(XX,X),
+	my_reverse(X,Y),
+	string_codes(YY,Y).
