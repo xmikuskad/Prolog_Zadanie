@@ -34,6 +34,7 @@ menu:-
 	writeln('5 - zmazanie studenta'),
 	writeln('6 - zoradit zostupne'),
 	writeln('7 - zoradit vzostupne'),
+	writeln('8 - vyhladat studenta'),
 	writeln('9 - koniec prace systemu'),
 	writeln('------------------------'),
 	nl.
@@ -61,7 +62,7 @@ vykonaj(52):-pridaj,!.
 vykonaj(53):-vymaz,!.
 vykonaj(54):-zorad_zostupne_ponuka,!.
 vykonaj(55):-zorad_vzostupne_ponuka,!.
-
+vykonaj(56):-vyhladaj,!.
 vykonaj(57):-!.
 vykonaj(_):-writeln('Pouzivaj len urcene znaky!').
 
@@ -138,7 +139,7 @@ pridaj:-
 	writeln('Zadaj datum prijatia (DD - MM - RR)'),
 	read_string(Prijatie),
 	over_datum(Prijatie),
-	writeln('Zadaj datum ukonèenia (DD - MM - RR'),
+	writeln('Zadaj datum ukoncenia (DD - MM - RR'),
 	read_string(Ukoncenie),
 	over_datum(Ukoncenie),
 	writeln('Zadaj status'),
@@ -163,7 +164,7 @@ vymaz:-
 	read_num(Rocnik),
 	writeln('Zadaj datum prijatia (DD - MM - RR)'),
 	read_string(Prijatie),
-	writeln('Zadaj datum ukonèenia (DD - MM - RR)'),
+	writeln('Zadaj datum ukoncenia (DD - MM - RR)'),
 	read_string(Ukoncenie),
 	writeln('Zadaj status'),
 	read_string(Status),
@@ -319,6 +320,29 @@ zorad_vzostupne(57):-
 zorad_vzostupne(_):-
 	writeln('Zla moznost').
 
+vyhladaj:-
+	writeln('Ak nechcete vyhladat podla daneho parametru tak nechajte pole prazdne'),
+	read_string(BezTohtoToNejde),
+	writeln('Zadaj meno'),
+	read_search_string(Meno),
+	writeln('Zadaj priezvisko'),
+	read_search_string(Priezvisko),
+	writeln('Zadaj stupen studia'),
+	read_search_string(Stupen),
+	writeln('Zadaj odbor'),
+	read_search_string(Odbor),
+	writeln('Zadaj rocnik'),
+	read_search_string(Rocnik),
+	writeln('Zadaj datum prijatia (DD - MM - RR)'),
+	read_search_string(Prijatie),
+	writeln('Zadaj datum ukoncenia (DD - MM - RR)'),
+	read_search_string(Ukoncenie),
+	writeln('Zadaj status'),
+	read_search_string(Status),
+
+	findall(student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status),student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status),L),
+	nl,writeln('Najdene vysledky:'),nl,
+	vypis_hladanie(L).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -384,3 +408,32 @@ reverse_string(XX,YY):-
 	string_codes(XX,X),
 	my_reverse(X,Y),
 	string_codes(YY,Y).
+
+read_search_string(String):-
+	current_input(Input),
+	read_line_to_codes(Input,Codes),
+	not(is_empty_arr(Codes)),
+	string_codes(String,Codes),
+	!.
+
+read_search_string(_).
+is_empty_arr([]).
+
+vypis_hladanie([student(Meno,Priezvisko,Stupen,Odbor,Rocnik,Prijatie,Ukoncenie,Status)|T]):-
+        write(Meno),
+	write(" "),
+	write(Priezvisko),
+	write(" "),
+	write(Stupen),
+	write(" "),
+        write(Odbor),
+        write(" "),
+	write(Rocnik),
+	write(" "),
+        write(Prijatie),
+        write(" "),
+        write(Ukoncenie),
+        write(" "),
+	writeln(Status),
+	vypis_hladanie(T).
+vypis_hladanie([]).
